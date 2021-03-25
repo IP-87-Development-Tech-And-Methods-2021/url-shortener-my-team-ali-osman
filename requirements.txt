@@ -1,0 +1,14 @@
+## APPLICATION REQUIREMENTS ##
+# framework
+pyramid
+# validation library
+trafaret
+# library for faster json operations
+ujson
+# web server which serves our application
+waitress
+
+
+## TEST REQUIREMENTS ##
+pytest
+webtest
