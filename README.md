@@ -7,7 +7,7 @@ your own repository and fulfill/rewrite this document (at least, replace everyth
 
 - Kaan Karay kaankaray99@gmail.com — [@kaankaray](https://github.com/kaankaray) 
 - Zakaria Boughanbouz youyiniou@hotmail.com - [@Zakaria98-dz](https://github.com/Zakaria98-dz)
-- ...
+- - Ali Osman Kul aosmankul97@gmail.com - [@al0s](https://github.com/al0s)
 - { Student's Name and Surname (in English) } { email } — { GitHub account }
 
 ## Design document
