@@ -1,17 +1,17 @@
-# 🧪 { TeamName } — URL Shortener 🧪
+# 🧪 URLshortened  — URL Shortener 🧪
 
 This is a template project for "Modern methods and technologies of software development" course labs. Use it to create
 your own repository and fulfill/rewrite this document (at least, replace everything in `{...}`).
 
 ## Team
 
-- { Student's Name and Surname (in English) } { email } — { GitHub account }
+- Kaan Karay kaankaray99@gmail.com — [@kaankaray](https://github.com/kaankaray) 
 - ...
 - { Student's Name and Surname (in English) } { email } — { GitHub account }
 
 ## Design document
 
-The [design document]({Place actual link to the design document Google Docs file here, see Laboratory assignment #1})
+The [design document](https://docs.google.com/document/d/1hGnRlAZmTvFqzdfUvD8AxyWIbSxNFAhaFtawrsWnir0/edit?usp=sharing)
 describes architecture and implementation details of this project.
 
 ### System structure
