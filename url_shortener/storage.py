@@ -27,15 +27,13 @@ class InMemoryStorage(Storage):
     def __init__(self):
         super().__init__()
         self._write_lock: Lock = Lock()
-        self._data: Dict[str, str, str, ] = {}
+        self._data: Dict[str, str] = {}
 
     def read(self, key: str) -> Optional[str]:
         return self._data.get(key)
 
-    def write(self, key: str, email: str, passwrd: str,):
+    def write(self, key: str, value: str):
         with self._write_lock:
-            self._data[key] = email
-
-
+            self._data[key] = value
 
 

@@ -1,7 +1,7 @@
 from .handlers import (
     public_resource_example,
-    protected_resource_read_example,
-    protected_resource_write_example,
+    read_user,
+    create_user,
     notfound,
     forbidden,
 )
@@ -21,20 +21,20 @@ def setup_routes(config):
     # Add protected resources
     # pass `factory=PROTECTED` to the `add_route` method
     # in order to make this resource available for authenticated users only
-    config.add_route('protected_resource_write_example',
+    config.add_route('create_user',
                      request_method='POST',
-                     pattern='/user/signup/{key}',
+                     pattern='/user/signup',
                      factory=PROTECTED)
-    config.add_view(protected_resource_write_example,
-                    route_name='protected_resource_write_example',
+    config.add_view(create_user,
+                    route_name='create_user',
                     permission='write')
 
-    config.add_route('protected_resource_read_example',
+    config.add_route('read_user',
                      request_method='GET',
                      pattern='/user/signup/{key}',
                      factory=PROTECTED)
-    config.add_view(protected_resource_read_example,
-                    route_name='protected_resource_read_example',
+    config.add_view(read_user,
+                    route_name='read_user',
                     permission='read')
 
 

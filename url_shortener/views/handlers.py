@@ -5,14 +5,13 @@ from url_shortener.logic import Logic
 from pyramid.request import Request
 from pyramid.response import Response
 
-
-def protected_resource_read_example(request: Request) -> Response:
+# Old name of the method: protected_resource_read_example
+def read_user(request: Request) -> Response:
     key = request.matchdict['key']
     logic: Logic = request.registry.logic
-    email = logic.get_example(key)
-    passwrd = logic.get_example(key)
+    data = {'email': logic.read_by_key(key)['email'], 'passwd': logic.read_by_key(key)['passwd']}
 
-    if email is None:
+    if data['email'] is None:
         return Response(
             status=httplib.NOT_FOUND,
             json_body={
@@ -25,27 +24,27 @@ def protected_resource_read_example(request: Request) -> Response:
         status=httplib.OK,
         json_body={
             'key': key,
-            'email': email,
-            'password': passwrd,
+            'email': data['email'],
+            'password': data['passwd'],
         },
     )
 
+#Old name of the method: protected_resource_write_example
+def create_user(request: Request) -> Response:
+    logic: Logic = request.registry.logic
+    key = logic.get_user_count()
+    logic.increase_user_count()
+    data = {'email': request.json_body.get('email'), 'passwd': request.json_body.get('passwrd')}
 
-def protected_resource_write_example(request: Request) -> Response:
-    key = request.matchdict['key']
-    email = request.json_body.get('email')
-    passwrd = request.json_body.get('passwrd')
-
-    if email and passwrd is None:
+    if data['email'] and data['passwd'] is None:
         return Response(status=httplib.BAD_REQUEST,
                         json_body={
                             'status': 'error',
                             'reason':
-                            '`email` or `password` was not provided within request',
+                                '`email` or `password` was not provided within request',
                         })
 
-    logic: Logic = request.registry.logic
-    success = logic.save_example_if_not_exists(key, email, passwrd,)
+    success = logic.save_example_if_not_exists(key, data)
 
     if success:
         return Response(
@@ -53,7 +52,8 @@ def protected_resource_write_example(request: Request) -> Response:
             headerlist=[('Location',
                          request.registry.base_url + '/resource/' + key)],
             json_body={
-                'status': 'User'
+                'status': 'User created with this email address.',
+                'key': key
             }
         )
 
