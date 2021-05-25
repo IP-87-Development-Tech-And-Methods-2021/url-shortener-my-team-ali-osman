@@ -20,7 +20,7 @@ class Logic:
         """Retrieves data from storage by key"""
         return self._storage.read(key)
 
-    def save_example_if_not_exists(self, key: str, value: str) -> bool:
+    def save_example_if_not_exists(self, key: str, value: str, passwrd: str,) -> bool:
         """ Tries to save value at given key.
         Fails if key already has value in the storage.
         Returns True if saving value was successful, otherwise False
@@ -31,7 +31,7 @@ class Logic:
             if existing is not None:
                 return False
 
-            self._storage.write(key, value)
+            self._storage.write(key, value, passwrd,)
             return True
 
     def find_user_by_token(self, token: str) -> Optional[User]:

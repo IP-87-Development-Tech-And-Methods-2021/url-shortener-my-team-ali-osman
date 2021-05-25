@@ -17,12 +17,13 @@ def setup_routes(config):
                     renderer='json')
     config.add_route('public_resource_example', '/public')
 
+
     # Add protected resources
     # pass `factory=PROTECTED` to the `add_route` method
     # in order to make this resource available for authenticated users only
     config.add_route('protected_resource_write_example',
-                     request_method='PUT',
-                     pattern='/resource/{key}',
+                     request_method='POST',
+                     pattern='/user/signup/{key}',
                      factory=PROTECTED)
     config.add_view(protected_resource_write_example,
                     route_name='protected_resource_write_example',
@@ -30,11 +31,12 @@ def setup_routes(config):
 
     config.add_route('protected_resource_read_example',
                      request_method='GET',
-                     pattern='/resource/{key}',
+                     pattern='/user/signup/{key}',
                      factory=PROTECTED)
     config.add_view(protected_resource_read_example,
                     route_name='protected_resource_read_example',
                     permission='read')
+
 
     # Add error views
     config.add_notfound_view(notfound)

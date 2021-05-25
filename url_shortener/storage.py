@@ -12,7 +12,7 @@ class Storage(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def write(self, key: str, value: str):
+    def write(self, key: str, email: str, passwrd: str,):
         """ Stores value by key """
         raise NotImplementedError
 
@@ -27,11 +27,15 @@ class InMemoryStorage(Storage):
     def __init__(self):
         super().__init__()
         self._write_lock: Lock = Lock()
-        self._data: Dict[str, str] = {}
+        self._data: Dict[str, str, str, ] = {}
 
     def read(self, key: str) -> Optional[str]:
         return self._data.get(key)
 
-    def write(self, key: str, value: str):
+    def write(self, key: str, email: str, passwrd: str,):
         with self._write_lock:
-            self._data[key] = value
+            self._data[key] = email
+
+
+
+

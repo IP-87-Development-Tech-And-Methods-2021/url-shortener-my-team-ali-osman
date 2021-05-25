@@ -9,14 +9,15 @@ from pyramid.response import Response
 def protected_resource_read_example(request: Request) -> Response:
     key = request.matchdict['key']
     logic: Logic = request.registry.logic
-    value = logic.get_example(key)
+    email = logic.get_example(key)
+    passwrd = logic.get_example(key)
 
-    if value is None:
+    if email is None:
         return Response(
             status=httplib.NOT_FOUND,
             json_body={
                 'status': 'error',
-                'reason': 'Resource does not exist'
+                'reason': 'User does not exist'
             },
         )
 
@@ -24,37 +25,42 @@ def protected_resource_read_example(request: Request) -> Response:
         status=httplib.OK,
         json_body={
             'key': key,
-            'value': value,
+            'email': email,
+            'password': passwrd,
         },
     )
 
 
 def protected_resource_write_example(request: Request) -> Response:
     key = request.matchdict['key']
-    value = request.json_body.get('value')
+    email = request.json_body.get('email')
+    passwrd = request.json_body.get('passwrd')
 
-    if value is None:
+    if email and passwrd is None:
         return Response(status=httplib.BAD_REQUEST,
                         json_body={
                             'status': 'error',
                             'reason':
-                            '`value` was not provided within request',
+                            '`email` or `password` was not provided within request',
                         })
 
     logic: Logic = request.registry.logic
-    success = logic.save_example_if_not_exists(key, value)
+    success = logic.save_example_if_not_exists(key, email, passwrd,)
 
     if success:
         return Response(
             status=httplib.CREATED,
             headerlist=[('Location',
                          request.registry.base_url + '/resource/' + key)],
+            json_body={
+                'status': 'User'
+            }
         )
 
     return Response(status=httplib.CONFLICT,
                     json_body={
                         'status': 'error',
-                        'reason': 'Resource already exists'
+                        'reason': 'User already exists'
                     })
 
 
