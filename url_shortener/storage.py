@@ -12,7 +12,7 @@ class Storage(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def write(self, key: str, email: str, passwrd: str,):
+    def write(self, key: str, value: str):
         """ Stores value by key """
         raise NotImplementedError
 
