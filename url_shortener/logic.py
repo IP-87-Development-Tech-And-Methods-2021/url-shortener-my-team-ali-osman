@@ -29,12 +29,14 @@ class Logic:
         token_list = self.get_tokens()
         token_list.append(token)
         self._storage.write('authTokens', token_list)
-        print(self.get_tokens())
+        print('User saved')
+        token.print_values()
 
     def remove_token(self, token: str) -> bool:
         token_list = self.get_tokens()
         for k in token_list:
-            if k.token == token:
+            # k.print_values()
+            if str(k.token) == token:
                 token_list.remove(k)
                 self._storage.write('authTokens', token_list)
                 return True
@@ -71,6 +73,7 @@ class Logic:
         return None
 
     def save_user(self, key: str, value: User) -> bool:
+        value.print_values()
         with self._check_and_write_lock:
             existing = self._storage.read(key)
             if existing is not None:
@@ -81,7 +84,7 @@ class Logic:
 
     def find_user_by_token(self, token: str) -> Optional[User]:
         for k in self.get_tokens():
-            if k.token == token:
+            if str(k.token) == token:
                 return k
         return None
 
@@ -89,20 +92,20 @@ class Logic:
 
     # Old deprecated methods
     # old name of the method: get_example
-    # def read_by_key(self, key: str) -> Optional[str]:
-    #     """Retrieves data from storage by key"""
-    #     return self._storage.read(key)
-    #
-    # def save_example_if_not_exists(self, key: str, value: str) -> bool:
-    #     """ Tries to save value at given key.
-    #     Fails if key already has value in the storage.
-    #     Returns True if saving value was successful, otherwise False
-    #     """
-    #     # Acquire lock, so that we do not get ourselves into the data race
-    #     with self._check_and_write_lock:
-    #         existing = self._storage.read(key)
-    #         if existing is not None:
-    #             return False
-    #
-    #         self._storage.write(key, value)
-    #         return True
+    def read_by_key(self, key: str) -> Optional[str]:
+        """Retrieves data from storage by key"""
+        return self._storage.read(key)
+
+    def save_if_not_exists(self, key: str, value: str) -> bool:
+        """ Tries to save value at given key.
+        Fails if key already has value in the storage.
+        Returns True if saving value was successful, otherwise False
+        """
+        # Acquire lock, so that we do not get ourselves into the data race
+        with self._check_and_write_lock:
+            existing = self._storage.read(key)
+            if existing is not None:
+                return False
+
+            self._storage.write(key, value)
+            return True

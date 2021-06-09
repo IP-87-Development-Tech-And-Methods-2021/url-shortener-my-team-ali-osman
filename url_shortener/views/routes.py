@@ -4,6 +4,8 @@ from .handlers import (
     create_user,
     login_user,
     logout_user,
+    redirect_longlink,
+    create_shortlink,
     notfound,
     forbidden,
 )
@@ -49,6 +51,23 @@ def setup_routes(config):
     config.add_view(logout_user,
                     route_name='logout_user',
                     permission='read')
+
+    config.add_route('redirect_longlink',
+                     request_method='GET',
+                     pattern='/{id}'
+                     )
+    config.add_view(redirect_longlink,
+                    route_name='redirect_longlink'
+                    )
+
+    config.add_route('create_shortlink',
+                     request_method='POST',
+                     pattern='/',
+                     factory=PROTECTED)
+    config.add_view(create_shortlink,
+                    route_name='create_shortlink',
+                    permission='read')
+
 
     # Add error views
     config.add_notfound_view(notfound)
