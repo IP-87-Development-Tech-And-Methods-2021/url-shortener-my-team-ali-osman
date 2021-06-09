@@ -15,11 +15,21 @@ domain_name = 'localhost:6543/'
 
 
 def get_auth_token(request: Request) -> str:
+    """ Strips request header to get the Auth id only. """
     return request.headers['Authorization'].replace('Bearer ', '')
 
 
 # Old name of the method: protected_resource_write_example
 def create_user(request: Request) -> Response:
+    """ Creates user if all conditions are met.
+        CONDITIONS
+            - If non-null data entered.
+            - If account does not exist.
+            - If username does not exits.
+            - If username is longer than 4 chars
+            - If email address is valid.
+        Returns a response.
+     """
     logic: Logic = request.registry.logic
     try:
         new_user = User(email=request.json_body.get('email'),
@@ -78,13 +88,22 @@ def create_user(request: Request) -> Response:
             }
         )
 
-    return Response(status=httplib.CONFLICT, json_body={
+    return Response(status=httplib.INTERNAL_SERVER_ERROR , json_body={
         'status': 'error',
-        'description': 'User already exists'
+        'description': 'Unexpected error occurred.'
     })
 
 
 def login_user(request: Request) -> Response:
+    """
+        Logs in the user.
+        CONDITIONS:
+            - If username and password entered.
+            - If username and password are non-null.
+            - If username is longer than 4 chars.
+            - If user is not logged in already.
+        Returns a response.
+    """
     logic: Logic = request.registry.logic
     try:
         username_entered = request.json_body.get('username')
@@ -139,6 +158,9 @@ def login_user(request: Request) -> Response:
 
 
 def logout_user(request: Request) -> Response:
+
+    """Logs out user."""
+
     logic: Logic = request.registry.logic
 
     if logic.remove_token(get_auth_token(request)):
@@ -154,7 +176,15 @@ def logout_user(request: Request) -> Response:
         })
 
 
-def redirect_longlink(request: Request) -> Response:
+def redirect_longlink(request: Request):
+    """ Redirects if conditions are met.
+        CONDITIONS:
+            - If data entered is non-null
+            - If key exists.
+            - If key is valid.
+        Returns HTTPFound
+    """
+
     logic: Logic = request.registry.logic
     try:
         id = request.matchdict['id']
@@ -184,6 +214,7 @@ def redirect_longlink(request: Request) -> Response:
 
 
 def create_shortlink(request: Request) -> Response:
+    """ Creates a shortlink id, by using id if provided or generating 4 char random string."""
     logic: Logic = request.registry.logic
 
     try:

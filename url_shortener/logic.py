@@ -23,9 +23,11 @@ class Logic:
 
     # Auth methods:
     def get_tokens(self) -> Optional[User]:
+        """ Returns all the users that are logged in. """
         return self._storage.read('authTokens')
 
     def add_token(self, token: User):
+        """ Appends user to the logged in users."""
         token_list = self.get_tokens()
         token_list.append(token)
         self._storage.write('authTokens', token_list)
@@ -33,6 +35,7 @@ class Logic:
         token.print_values()
 
     def remove_token(self, token: str) -> bool:
+        """ Removes user from logged in users list. """
         token_list = self.get_tokens()
         for k in token_list:
             # k.print_values()
@@ -73,6 +76,7 @@ class Logic:
         return None
 
     def save_user(self, key: str, value: User) -> bool:
+        """ If saves user successfully returns True. """
         with self._check_and_write_lock:
             existing = self._storage.read(key)
             if existing is not None:
@@ -105,5 +109,6 @@ class Logic:
 
             self._storage.write(key, value)
             return True
+
     def remove_value_by_key(self, key: str):
         self._storage.write(key, None)
