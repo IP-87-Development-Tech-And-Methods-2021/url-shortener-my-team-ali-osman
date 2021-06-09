@@ -1,11 +1,12 @@
 from .handlers import (
     public_resource_example,
-    read_user,
     create_user,
     login_user,
     logout_user,
     redirect_longlink,
     create_shortlink,
+    list_links_for_user,
+    delete_shortlink,
     notfound,
     forbidden,
 )
@@ -29,14 +30,6 @@ def setup_routes(config):
                      pattern='/user/create')
     config.add_view(create_user,
                     route_name='create_user')
-
-    config.add_route('read_user',
-                     request_method='GET',
-                     pattern='/user/signup/{key}',
-                     factory=PROTECTED)
-    config.add_view(read_user,
-                    route_name='read_user',
-                    permission='read')
 
     config.add_route('login_user',
                      request_method='POST',
@@ -62,10 +55,27 @@ def setup_routes(config):
 
     config.add_route('create_shortlink',
                      request_method='POST',
-                     pattern='/',
+                     pattern='/urls/shorten',
                      factory=PROTECTED)
     config.add_view(create_shortlink,
                     route_name='create_shortlink',
+                    permission='read')
+
+    config.add_route('list_links_for_user',
+                     request_method='GET',
+                     # '/urls' would be better imo but in specification it's stated as '/urls/list' for some reason
+                     pattern='/urls/list',
+                     factory=PROTECTED)
+    config.add_view(list_links_for_user,
+                    route_name='list_links_for_user',
+                    permission='read')
+
+    config.add_route('delete_shortlink',
+                     request_method='POST',
+                     pattern='/urls/delete',
+                     factory=PROTECTED)
+    config.add_view(delete_shortlink,
+                    route_name='delete_shortlink',
                     permission='read')
 
 

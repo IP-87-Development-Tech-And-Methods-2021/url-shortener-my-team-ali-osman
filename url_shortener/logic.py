@@ -73,7 +73,6 @@ class Logic:
         return None
 
     def save_user(self, key: str, value: User) -> bool:
-        value.print_values()
         with self._check_and_write_lock:
             existing = self._storage.read(key)
             if existing is not None:
@@ -88,9 +87,6 @@ class Logic:
                 return k
         return None
 
-
-
-    # Old deprecated methods
     # old name of the method: get_example
     def read_by_key(self, key: str) -> Optional[str]:
         """Retrieves data from storage by key"""
@@ -109,3 +105,5 @@ class Logic:
 
             self._storage.write(key, value)
             return True
+    def remove_value_by_key(self, key: str):
+        self._storage.write(key, None)
