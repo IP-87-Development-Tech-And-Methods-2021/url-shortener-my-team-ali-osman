@@ -1,8 +1,5 @@
 """This module contains various examples on how to implement an endpoint"""
 import http.client as httplib
-import re
-import random
-import string
 from url_shortener.logic import Logic
 from url_shortener.dto import User
 
@@ -10,8 +7,9 @@ from pyramid.request import Request
 from pyramid.response import Response
 from pyramid.httpexceptions import HTTPFound
 
-EMAIL_REGEX = re.compile(r"[^@]+@[^@]+\.[^@]+")
-domain_name = 'localhost:6543/'
+import logging
+import uuid
+log = logging.getLogger(__name__)
 
 
 def get_auth_token(request: Request) -> str:
@@ -37,7 +35,7 @@ def create_user(request: Request) -> Response:
                         password=request.json_body.get('password'),
                         id=logic.get_user_count())
     except Exception as e:
-        print(e)
+        log.error(e)
         return Response(status=httplib.BAD_REQUEST, json_body={
             'status': 'error',
             'description': 'Request body is missing.'
@@ -67,13 +65,14 @@ def create_user(request: Request) -> Response:
             'status': 'error',
             'description': 'Username cannot be less than 3 characters.',
         })
-    if not EMAIL_REGEX.match(new_user.email):
+
+    if not logic.is_url_valid(new_user.email):
         return Response(status=httplib.BAD_REQUEST, json_body={
             'status': 'error',
             'description': 'Please enter a valid email address.',
         })
-
-    logic.add_token(new_user)
+    token = uuid.uuid4().hex
+    logic.add_token(token, new_user.username)
     logic.increase_user_count()
 
     success = logic.save_user(str(new_user.id), new_user)
@@ -84,7 +83,7 @@ def create_user(request: Request) -> Response:
                 'status': 'User created with this email address.',
                 'id': new_user.id,
                 'token-type': 'Bearer',
-                'token': new_user.token
+                'token': token
             }
         )
 
@@ -105,11 +104,12 @@ def login_user(request: Request) -> Response:
         Returns a response.
     """
     logic: Logic = request.registry.logic
+
     try:
         username_entered = request.json_body.get('username')
         password_entered = request.json_body.get('password')
     except Exception as e:
-        print(e)
+        log.error(e)
         return Response(status=httplib.BAD_REQUEST, json_body={
             'status': 'error',
             'description': 'Request body is missing.'
@@ -126,10 +126,15 @@ def login_user(request: Request) -> Response:
             'status': 'error',
             'description': 'Username cannot be less than 4 characters.',
         })
-    user = logic.read_user_by_username(username_entered)
 
+    token = uuid.uuid4().hex
+    # TODO: if user is logged in check does NOT work!
     # Check if user is already logged in
-    if any(user.username == k.username for k in logic.get_tokens()):
+    print(request.is_authenticated) # Returns false
+    print(request.authorization) # Returns None as expected
+    print(request.authenticated_userid) # Returns None
+    print(token)
+    if request.is_authenticated:
         return Response(
             status=httplib.CONFLICT, json_body={
                 'status': 'error',
@@ -137,15 +142,17 @@ def login_user(request: Request) -> Response:
             }
         )
 
+    user = logic.read_user_by_username(username_entered)
+
     if user is not None:
-        logic.add_token(user)
+        logic.add_token(token, user.username)
         return Response(
             status=httplib.CREATED, json_body={
                 'status': 'success',
                 'description': f'Welcome, {user.username}. Please use your token for operations.',
                 'id': user.id,
                 'token-type': 'Bearer',
-                'token': user.token
+                'token': token
             }
         )
     else:
@@ -162,7 +169,6 @@ def logout_user(request: Request) -> Response:
     """Logs out user."""
 
     logic: Logic = request.registry.logic
-
     if logic.remove_token(get_auth_token(request)):
 
         return Response(status=httplib.OK, json_body={
@@ -189,7 +195,7 @@ def redirect_longlink(request: Request):
     try:
         id = request.matchdict['id']
     except Exception as e:
-        print(e)
+        log.error(e)
         return Response(status=httplib.BAD_REQUEST, json_body={
             'status': 'error',
             'description': 'Request body is missing.'
@@ -198,7 +204,7 @@ def redirect_longlink(request: Request):
     try:
         long_link = logic.read_by_key(id)
     except Exception as e:
-        print(e)
+        log.error(e)
         return Response(status=httplib.BAD_REQUEST, json_body={
             'status': 'error',
             'description': 'Key does not exist.'
@@ -221,7 +227,7 @@ def create_shortlink(request: Request) -> Response:
         url_provided = request.json_body.get('url')
         id_provided = request.json_body.get('id')
     except Exception as e:
-        print(e)
+        log.error(e)
         return Response(status=httplib.BAD_REQUEST, json_body={
             'status': 'error',
             'description': 'Request body is missing.'
@@ -233,27 +239,17 @@ def create_shortlink(request: Request) -> Response:
             'description': 'URL must be provided.'
         })
 
-    # If custom id is not provided, or this id already exists, we give an random one.
-    while id_provided is None or logic.read_by_key(id_provided) is not None:
-        id_provided = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase) for _ in range(4))
-
-    # People shouldn't overwrite user id's so we'll block it.
-    if any(c.isdigit() for c in id_provided):
+    # People shouldn't overwrite user id's so we'll block all integer ids.
+    if id_provided is not None and not any(c.isalpha() for c in id_provided):
         return Response(status=httplib.BAD_REQUEST, json_body={
             'status': 'error',
-            'description': 'Numbers in id is not allowed.'
+            'description': 'ID needs at least one alphabetic character.'
         })
 
-    # URL check if it's valid. (stolen from django url validation regex)
-    regex_check = re.compile(
-        r'^(?:http|ftp)s?://'  # http:// or https://
-        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'  # domain...
-        r'localhost|'  # localhost...
-        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or ip
-        r'(?::\d+)?'  # optional port
-        r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+    # If custom id is not provided, or this id already exists, we give an random one.
+    id_provided = logic.give_random_string(id_provided)
 
-    if not re.match(regex_check, url_provided.lower()) is not None:
+    if logic.is_url_valid(url_provided):
         return Response(status=httplib.BAD_REQUEST, json_body={
             'status': 'error',
             'description': 'URL is incorrect.'
@@ -263,14 +259,14 @@ def create_shortlink(request: Request) -> Response:
 
     # If saving the shortlink succeeds, save this info to user.
     if success:
-        new_user = logic.find_user_by_token(get_auth_token(request))
+        new_user = logic.read_user_by_email(request.authenticated_userid)
         new_user.urls.append(id_provided)
         logic.save_user(str(new_user.id), new_user)
         return Response(status=httplib.OK, json_body={
             'status': 'success',
             'description': 'Successfully created short url.',
             'id': id_provided,
-            'shortened_link': domain_name + id_provided
+            'shortened_link': request.registry.base_url + '/' + id_provided
         })
 
     return Response(status=httplib.INTERNAL_SERVER_ERROR,
@@ -284,11 +280,10 @@ def list_links_for_user(request: Request) -> Response:
     logic: Logic = request.registry.logic
 
     user = logic.find_user_by_token(get_auth_token(request))
-    print(user.urls)
 
     k = {}
     for m in user.urls:
-        k[domain_name + m] = logic.read_by_key(m)
+        k[request.registry.base_url + '/' + m] = logic.read_by_key(m)
 
     return Response(status=httplib.OK,
                     json_body={
@@ -304,7 +299,7 @@ def delete_shortlink(request: Request) -> Response:
     try:
         id_provided = request.json_body.get('id')
     except Exception as e:
-        print(e)
+        log.error(e)
         return Response(status=httplib.BAD_REQUEST, json_body={
             'status': 'error',
             'description': 'Request body is missing.'
