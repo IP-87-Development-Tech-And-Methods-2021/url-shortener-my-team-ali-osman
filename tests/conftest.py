@@ -5,6 +5,9 @@ from pyramid.testing import DummyRequest, testConfig
 import pytest
 import webtest
 
+import sys
+sys.path[0] += '\\..'
+
 from url_shortener.main import make_app
 from url_shortener.config import Config
 
