@@ -143,7 +143,7 @@ class Logic:
             r'(?::\d+)?'  # optional port
             r'(?:/?|[/?]\S+)$', re.IGNORECASE)
 
-        return not re.match(regex_check, url.lower()) is not None
+        return re.match(regex_check, url.lower()) is not None
 
     def is_email_valid(self, email: str) -> bool:
         return re.compile(r"[^@]+@[^@]+\.[^@]+").match(email) is not None

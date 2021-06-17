@@ -66,7 +66,7 @@ def create_user(request: Request) -> Response:
             'description': 'Username cannot be less than 3 characters.',
         })
 
-    if not logic.is_url_valid(new_user.email):
+    if not logic.is_email_valid(new_user.email):
         return Response(status=httplib.BAD_REQUEST, json_body={
             'status': 'error',
             'description': 'Please enter a valid email address.',
@@ -249,7 +249,7 @@ def create_shortlink(request: Request) -> Response:
     # If custom id is not provided, or this id already exists, we give an random one.
     id_provided = logic.give_random_string(id_provided)
 
-    if logic.is_url_valid(url_provided):
+    if not logic.is_url_valid(url_provided):
         return Response(status=httplib.BAD_REQUEST, json_body={
             'status': 'error',
             'description': 'URL is incorrect.'
