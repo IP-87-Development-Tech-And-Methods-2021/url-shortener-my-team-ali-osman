@@ -35,3 +35,5 @@ class InMemoryStorage(Storage):
     def write(self, key: str, value: str):
         with self._write_lock:
             self._data[key] = value
+
+
